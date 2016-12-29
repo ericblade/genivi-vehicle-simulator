@@ -92,7 +92,7 @@ public class SteeringWheelInputController : InputController {
         brakeAxis = AppController.Instance.appSettings.brakeAxis;
         FFBGain = AppController.Instance.appSettings.FFBMultiplier;
 
-        
+
     }
 
     IEnumerator SpringforceFix()
@@ -221,7 +221,7 @@ public class SteeringWheelInputController : InputController {
         if(isConfirmDown && GetAccelBrakeInput() < selectThreshold)
         {
             isConfirmDown = false;
-        }       
+        }
         else if(!isConfirmDown && GetAccelBrakeInput() > selectThreshold)
         {
             isConfirmDown = true;
@@ -252,53 +252,47 @@ public class SteeringWheelInputController : InputController {
                 DirectInputWrapper.PlaySpringForce(wheelIndex, 0, Mathf.RoundToInt(springSaturation * FFBGain), springCoefficient);
             }
 
+            DeviceState state2 = DirectInputWrapper.GetStateManaged(pedalIndex);
+            int gas = 0;
+            int brake = 0;
 
-            if(DirectInputWrapper.DevicesCount() > 1)
-            {
-                DeviceState state2 = DirectInputWrapper.GetStateManaged(pedalIndex);
-                int gas = 0;
-                int brake = 0;
+            /* x2 = state2.lX;
+            y2 = state2.lY;
+            z2 = state2.lZ;
+            s02 = state2.rglSlider[0];
+            s12 = state2.rglSlider[1];*/
 
-               /* x2 = state2.lX;
-                y2 = state2.lY;
-                z2 = state2.lZ;
-                s02 = state2.rglSlider[0];
-                s12 = state2.rglSlider[1];*/
-
-                switch (gasAxis) {
-                    case "X": 
-                        gas = state2.lX;
-                        break;
-                    case "Y":
-                        gas = state2.lY;
-                        break;
-                    case "Z":
-                        gas = state2.lZ;
-                        break;
-                }
-
-                switch (brakeAxis)
-                {
-                    case "X":
-                        brake = state2.lX;
-                        break;
-                    case "Y":
-                        brake = state2.lY;
-                        break;
-                    case "Z":
-                        brake = state2.lZ;
-                        break;
-                }
-
-
-                float totalGas = (maxGas - minGas);
-                float totalBrake = (maxBrake - minBrake);
-
-                accelInput = (gas - minGas) / totalGas - (brake - minBrake) / totalBrake;
+            switch (gasAxis) {
+                case "X":
+                    gas = state2.lX;
+                    break;
+                case "Y":
+                    gas = state2.lY;
+                    break;
+                case "Z":
+                    gas = state2.lZ;
+                    break;
             }
+
+            switch (brakeAxis)
+            {
+                case "X":
+                    brake = state2.lX;
+                    break;
+                case "Y":
+                    brake = state2.lY;
+                    break;
+                case "Z":
+                    brake = state2.lZ;
+                    break;
+            }
+
+
+            float totalGas = (maxGas - minGas);
+            float totalBrake = (maxBrake - minBrake);
+
+            accelInput = (gas - minGas) / totalGas - (brake - minBrake) / totalBrake;
         }
-
-
     }
 
     public override float GetAccelBrakeInput()

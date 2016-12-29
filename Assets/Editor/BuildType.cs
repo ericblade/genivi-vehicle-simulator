@@ -38,7 +38,7 @@ public class BuildType : EditorWindow
     }
 
     enum BuildResolution { FULL, HALF, QUARTER }
-    enum BuildControlStyle { WHEEL, KEYBOARD }
+    enum BuildControlStyle { WHEEL, KEYBOARD, WHEEL_TM_PRO_DIGITAL2 }
     enum BuildFullScreen { FULL_SCREEN, WINDOW }
     enum BuildDisplayType { PROJECTOR, SCREENS }
     enum BuildShowDebug { SHOW_DEBUG, DONT_SHOW_DEBUG }
@@ -226,7 +226,7 @@ public class BuildType : EditorWindow
                 xRes = 1920;
                 break;
         }
-        
+
         switch (curResolution)
         {
             case BuildResolution.FULL:
@@ -254,6 +254,16 @@ public class BuildType : EditorWindow
             case BuildControlStyle.WHEEL:
                 customSettings.inputController = typeof(SteeringWheelInputController);
                 customSettings.inputControllerBackup = typeof(KeyboardInputController);
+                break;
+            case BuildControlStyle.WHEEL_TM_PRO_DIGITAL2:
+                customSettings.inputController = typeof(SteeringWheelInputController);
+                customSettings.inputControllerBackup = typeof(KeyboardInputController);
+                customSettings.brakeAxis = "Y";
+                customSettings.gasAxis = "Y";
+                customSettings.minGas = 1;
+                customSettings.maxGas = -32767;
+                customSettings.minBrake = 0;
+                customSettings.maxBrake = 32768;
                 break;
         }
 
@@ -377,7 +387,7 @@ public class BuildType : EditorWindow
         TextWriter writer = new StreamWriter(dataDir + "build_settings");
         ser.Serialize(writer, customSettings);
         writer.Close();
-        
+
 
         //write network settings
         NetworkSettings settings = new NetworkSettings();
