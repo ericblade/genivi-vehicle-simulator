@@ -17,8 +17,8 @@ public struct DeviceState
     [MarshalAs(UnmanagedType.ByValArray, SizeConst = 4)]
     public uint[] rgdwPOV;      /* POV directions               */
     [MarshalAs(UnmanagedType.ByValArray, SizeConst = 128)]
-    public byte[] rgbButtons;   /* 128 buttons                  */         
-  
+    public byte[] rgbButtons;   /* 128 buttons                  */
+
 };
 
 public class DirectInputWrapper {
@@ -36,6 +36,9 @@ public class DirectInputWrapper {
     public static extern bool HasForceFeedback(int device);
 
     [DllImport("DirectInputPlugin", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl)]
+    public static extern bool IsDrivingDevice(int device);
+
+    [DllImport("DirectInputPlugin", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl)]
     public static extern void Close();
 
     [DllImport("DirectInputPlugin", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl)]
@@ -48,21 +51,26 @@ public class DirectInputWrapper {
     public static extern int GetNumEffects(int device);
 
     [DllImport("DirectInputPlugin", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl)]
+    public static extern int GetNumPedalAxes(int device);
+
+    [DllImport("DirectInputPlugin", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl)]
     public static extern IntPtr GetEffectName(int device, int index);
 
-    //params in range 0 - 1000
+    //params in range 0 - 10000
     [DllImport("DirectInputPlugin", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl)]
     public static extern long PlaySpringForce(int device, int offset, int saturation, int coefficient);
 
     [DllImport("DirectInputPlugin", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl)]
     public static extern bool StopSpringForce(int device);
 
+    //force -10000 - 10000
     [DllImport("DirectInputPlugin", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl)]
     public static extern long PlayDamperForce(int device, int damperAmount);
 
     [DllImport("DirectInputPlugin", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl)]
     public static extern bool StopDamperForce(int device);
 
+    //force -10000 - 10000
     [DllImport("DirectInputPlugin", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl)]
     public static extern long PlayConstantForce(int device, int force);
 
@@ -87,7 +95,7 @@ public class DirectInputWrapper {
             try
             {
                 ret = (DeviceState)Marshal.PtrToStructure(ptr, typeof(DeviceState));
-            } catch(Exception e)
+            } catch
             {
                 //TODO: do something better here
                // Debug.Log(e.ToString());

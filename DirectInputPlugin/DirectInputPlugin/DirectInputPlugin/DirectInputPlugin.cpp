@@ -6,6 +6,7 @@
 
 struct DEVICE {
 	bool hasForceFeedback = false;
+	DWORD deviceType;
 	TCHAR productName[MAX_PATH];
 	TCHAR effectNames[30][MAX_PATH];
 	int num_effects = 0;
@@ -35,6 +36,7 @@ BOOL CALLBACK EnumDevicesCallback(const LPCDIDEVICEINSTANCE lpDeviceInstance, LP
 	ZeroMemory(&device, sizeof(device));
 
 	device.deviceInterface = currentDevice;
+	device.deviceType = lpDeviceInstance->dwDevType;
 	_tcscpy_s(device.productName, _countof(device.productName), lpDeviceInstance->tszProductName);
 
 	allDevices.push_back(device);
@@ -467,6 +469,33 @@ extern "C" __declspec(dllexport) bool HasForceFeedback(int device) {
 	}
 	else {
 		return allDevices[device].hasForceFeedback;
+	}
+}
+
+extern "C" __declspec(dllexport) bool IsDrivingDevice(int device) {
+	if (device >= allDevices.size()) {
+		return false;
+	}
+	else {
+		return GET_DIDEVICE_TYPE(allDevices[device].deviceType) == DI8DEVTYPE_DRIVING;
+	}
+}
+
+extern "C" __declspec(dllexport) int GetNumPedalAxes(int device) {
+	if (device >= allDevices.size()) {
+		return 0;
+	}
+	else {
+		switch (GET_DIDEVICE_SUBTYPE(allDevices[device].deviceType)) {
+		case DI8DEVTYPEDRIVING_COMBINEDPEDALS:
+			return 1;
+		case DI8DEVTYPEDRIVING_DUALPEDALS:
+			return 2;
+		case DI8DEVTYPEDRIVING_THREEPEDALS:
+			return 3;
+		default:
+			return 0;
+		}
 	}
 }
 

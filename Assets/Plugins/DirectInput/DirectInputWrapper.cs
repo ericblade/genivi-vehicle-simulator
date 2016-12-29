@@ -17,8 +17,8 @@ public struct DeviceState
     [MarshalAs(UnmanagedType.ByValArray, SizeConst = 4)]
     public uint[] rgdwPOV;      /* POV directions               */
     [MarshalAs(UnmanagedType.ByValArray, SizeConst = 128)]
-    public byte[] rgbButtons;   /* 128 buttons                  */         
-  
+    public byte[] rgbButtons;   /* 128 buttons                  */
+
 };
 
 public class DirectInputWrapper {
@@ -36,6 +36,9 @@ public class DirectInputWrapper {
     public static extern bool HasForceFeedback(int device);
 
     [DllImport("DirectInputPlugin", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl)]
+    public static extern bool IsDrivingDevice(int device);
+
+    [DllImport("DirectInputPlugin", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl)]
     public static extern void Close();
 
     [DllImport("DirectInputPlugin", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl)]
@@ -46,6 +49,9 @@ public class DirectInputWrapper {
 
     [DllImport("DirectInputPlugin", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl)]
     public static extern int GetNumEffects(int device);
+
+    [DllImport("DirectInputPlugin", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl)]
+    public static extern int GetNumPedalAxes(int device);
 
     [DllImport("DirectInputPlugin", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl)]
     public static extern IntPtr GetEffectName(int device, int index);

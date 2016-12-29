@@ -65,34 +65,96 @@ public class SteeringWheelInputController : InputController {
 
         DirectInputWrapper.Init();
 
-        bool ff0 = DirectInputWrapper.HasForceFeedback(0);
-        if (DirectInputWrapper.DevicesCount() > 1)
-        {
-            bool ff1 = DirectInputWrapper.HasForceFeedback(1);
+        int firstDrivingDevice = -1;
+        int secondDrivingDevice = -1;
+
+        // attempt to determine if we have two driving devices - one for pedals, one for wheel.
+        for (int x = 0; x < DirectInputWrapper.DevicesCount(); x++) {
+            if (DirectInputWrapper.IsDrivingDevice(x)) {
+                if (firstDrivingDevice == -1) {
+                    firstDrivingDevice = x;
+                    continue;
+                } else if (secondDrivingDevice == -1) {
+                    secondDrivingDevice = x;
+                    break;
+                }
+            }
+        }
+
+        // if we find two driving devices, or we have multiple devices that we can't positively
+        // identify as driving devices, then call the one that has Force Feedback support the wheel,
+        // and the one that doesn't, the pedals.
+
+        if ( (firstDrivingDevice > -1 && secondDrivingDevice > -1) || DirectInputWrapper.DevicesCount() > 1) {
+            if (firstDrivingDevice == -1)
+                firstDrivingDevice = 0;
+            if (secondDrivingDevice == -1)
+                secondDrivingDevice = 0;
+
+            bool ff0 = DirectInputWrapper.HasForceFeedback(firstDrivingDevice);
+            bool ff1 = DirectInputWrapper.HasForceFeedback(secondDrivingDevice);
 
             if (ff1 && !ff0)
             {
-                wheelIndex = 1;
-                pedalIndex = 0;
+                wheelIndex = secondDrivingDevice;
+                pedalIndex = firstDrivingDevice;
             }
             else if (ff0 && !ff1)
             {
-                wheelIndex = 0;
-                pedalIndex = 1;
+                wheelIndex = firstDrivingDevice;
+                pedalIndex = secondDrivingDevice;
             }
             else
                 Debug.Log("STEERINGWHEEL: Multiple devices and couldn't find steering wheel device index");
+        } else if (firstDrivingDevice > -1) {
+            // if only one driving device is found, assume that it is a wheel and pedals
+            wheelIndex = firstDrivingDevice;
+            pedalIndex = firstDrivingDevice;
+        } else {
+            // found no driving devices, so we probably found some other kind of game controller, or
+            // a single wheel that doesn't identify itself as a wheel, just a controller.
+            Debug.Log("STEERINGWHEEL: No driving devices found, assuming index 0");
+            wheelIndex = 0;
+            pedalIndex = 0;
         }
 
-            minBrake = AppController.Instance.appSettings.minBrake;
+        minBrake = AppController.Instance.appSettings.minBrake;
         maxBrake = AppController.Instance.appSettings.maxBrake;
         minGas = AppController.Instance.appSettings.minGas;
         maxGas = AppController.Instance.appSettings.maxGas;
-        gasAxis = AppController.Instance.appSettings.gasAxis;
-        brakeAxis = AppController.Instance.appSettings.brakeAxis;
+        if (wheelIndex != pedalIndex) {
+            gasAxis = AppController.Instance.appSettings.gasAxis;
+            brakeAxis = AppController.Instance.appSettings.brakeAxis;
+        } else {
+            // Debug.Log("**** pedalIndex=" + pedalIndex);
+            // Debug.Log("IsDrivingDevice " + DirectInputWrapper.IsDrivingDevice(pedalIndex));
+            // Debug.Log("GetNumPedalAxes " + DirectInputWrapper.GetNumPedalAxes(pedalIndex));
+            int pedalCount = DirectInputWrapper.GetNumPedalAxes(pedalIndex);
+            if (pedalCount == 0) {
+                Debug.Log("STEERINGWHEEL: Unable to determine number of pedals, assuming 1");
+                pedalCount = 1;
+            }
+            switch(pedalCount) {
+                case 1:
+                    gasAxis = "Y";
+                    brakeAxis = "Y";
+                    minGas = 1;
+                    maxGas = -32767;
+                    minBrake = 0;
+                    maxBrake = 32768;
+                    break;
+                case 2:
+                    gasAxis = "Y";
+                    brakeAxis = "Z";
+                    break;
+                case 3:
+                    gasAxis = "Y";
+                    brakeAxis = "Z";
+                    // clutchAxis = "X";
+                    break;
+            }
+        }
         FFBGain = AppController.Instance.appSettings.FFBMultiplier;
-
-
     }
 
     IEnumerator SpringforceFix()
