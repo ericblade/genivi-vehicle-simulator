@@ -21,10 +21,10 @@ public class NetworkSettings
     {
         //hostIp = "127.0.0.1";
         //clientIp = "192.168.178.29";
-        //altClientIP = "127.0.0.1";
+        altClientIP = "127.0.0.1";
         hostIp = "192.168.16.129";
         clientIp = "192.168.16.128";
-        altClientIP = "192.168.16.85";
+        //altClientIP = "192.168.16.85";
 
     }
 
@@ -54,7 +54,7 @@ public class NetworkSettings
             return (NetworkSettings)ser.Deserialize(reader);
         }
         catch (System.Exception e)
-        {      
+        {
             Debug.LogWarning("error reading network settings, reverting to default: " + e.Message);
             return new NetworkSettings();
         }
@@ -119,7 +119,7 @@ public class NetworkController : PersistentUnitySingleton<NetworkController> {
             OnSelectCar(car);
     }
 
-    
+
     public void InitConsole(int consoleNum)
     {
         if(GetComponent<NetworkView>())

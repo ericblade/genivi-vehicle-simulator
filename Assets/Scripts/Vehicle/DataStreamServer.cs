@@ -54,7 +54,7 @@ public class DataStreamServer : PersistentUnitySingleton<DataStreamServer> {
             connections.Add(data);
         } catch (Exception e)
         {
-            Debug.Log("DataStreamServer: " + e.Message);
+            Debug.Log("DataStreamServer ConnectCallback: " + e.Message);
         }
     }
 
@@ -62,25 +62,31 @@ public class DataStreamServer : PersistentUnitySingleton<DataStreamServer> {
     {
         try
         {
-            if (client.Connected)
-                client.BeginSend(data, 0, data.Length, 0,
-            new AsyncCallback(SendCallback), client);
+            if (client.Connected) {
+                client.BeginSend(data, 0, data.Length, 0, new AsyncCallback(SendCallback), client);
+            }
         } catch (Exception e)
         {
-            Debug.Log("DataStreamServer: " + e.Message);
+            Debug.Log("DataStreamServer SendTCP: " + e.Message);
+            Debug.Log("Socket disconnected due to error");
+            client.Shutdown(SocketShutdown.Both);
+            client.Close();
         }
     }
 
     private static void SendCallback(IAsyncResult ar)
     {
+        Socket handler = (Socket)ar.AsyncState;
         try
-        {         
-            Socket handler = (Socket)ar.AsyncState;
+        {
             handler.EndSend(ar);
         }
         catch (Exception e)
         {
-            Debug.Log("DataStramServer: " + e.ToString());
+            Debug.Log("DataStramServer SendCallback: " + e.ToString());
+            Debug.Log("Socket disconnected due to error");
+            handler.Shutdown(SocketShutdown.Both);
+            handler.Close();
         }
     }
 
@@ -98,11 +104,14 @@ public class DataStreamServer : PersistentUnitySingleton<DataStreamServer> {
 
     public void Send(byte[] data)
     {
-        foreach(var client in connections)
-        {
-           SendTCP(data, client.client);
+        for (int i = connections.Count - 1; i >= 0; i--) {
+            var client = connections[i];
+            if (client.client.Connected) {
+                SendTCP(data, client.client);
+            } else {
+                connections.RemoveAt(i);
+            }
         }
-
     }
 
     public void Send(float[] data)
@@ -133,18 +142,15 @@ public class DataStreamServer : PersistentUnitySingleton<DataStreamServer> {
 
     public void SendAsText(FullDataFrame frame)
     {
-        foreach (var connection in connections)
-        {
-            byte[] data;
-            if(connection.IC)
-            {
-                data = Encoding.ASCII.GetBytes(frame.ToICCSV());
-            } else
-            {
-                data = Encoding.ASCII.GetBytes(frame.ToCSV());
+        for (int i = connections.Count - 1; i >= 0; i--) {
+            var connection = connections[i];
+            if (connection.client.Connected) {
+                byte[] data;
+                data = Encoding.ASCII.GetBytes(connection.IC ? frame.ToICCSV() : frame.ToCSV());
+                SendTCP(data, connection.client);
+            } else {
+                connections.RemoveAt(i);
             }
-            SendTCP(data, connection.client);
         }
     }
-
 }
