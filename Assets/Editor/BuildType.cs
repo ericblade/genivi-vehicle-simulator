@@ -98,7 +98,8 @@ public class BuildType : EditorWindow
             };
 
         //clear spot for it
-        var path = "TempDeploy";
+        var path = "Deploy/" + ShowBuild.GetBuildNumber();
+
         FileUtil.DeleteFileOrDirectory(path);
         Directory.CreateDirectory(path + "/");
         path = path + "/";
