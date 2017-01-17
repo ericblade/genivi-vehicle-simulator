@@ -98,7 +98,8 @@ public class BuildType : EditorWindow
             };
 
         //clear spot for it
-        var path = "TempDeploy";
+        var path = "Deploy/" + ShowBuild.GetBuildNumber();
+
         FileUtil.DeleteFileOrDirectory(path);
         Directory.CreateDirectory(path + "/");
         path = path + "/";
@@ -226,7 +227,7 @@ public class BuildType : EditorWindow
                 xRes = 1920;
                 break;
         }
-        
+
         switch (curResolution)
         {
             case BuildResolution.FULL:
@@ -377,7 +378,7 @@ public class BuildType : EditorWindow
         TextWriter writer = new StreamWriter(dataDir + "build_settings");
         ser.Serialize(writer, customSettings);
         writer.Close();
-        
+
 
         //write network settings
         NetworkSettings settings = new NetworkSettings();
