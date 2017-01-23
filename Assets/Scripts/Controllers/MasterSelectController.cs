@@ -178,7 +178,13 @@ public class MasterSelectController : MonoBehaviour {
         var car = GetComponent<CarSelectController>().GetCurrentCar();
         carLoadPosition = car.transform.localPosition;
         carLoadRotation = car.transform.localRotation;
-        Physics.IgnoreLayerCollision(LayerMask.NameToLayer("PlayerCar"), LayerMask.NameToLayer("Default"), true);
+        
+        var carLayer = LayerMask.NameToLayer("PlayerCar");
+        if (carLayer == -1) {
+            Debug.Log("**** No PlayerCar layer found!");
+        } else {
+            Physics.IgnoreLayerCollision(LayerMask.NameToLayer("PlayerCar"), LayerMask.NameToLayer("Default"), true);
+        }
 
         DestroyOnLoadManager.Instance.Init();
 

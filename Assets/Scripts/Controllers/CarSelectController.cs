@@ -321,13 +321,25 @@ public class CarSelectController : BaseSelectController
         return choices[currentChoice].displayObject;
     }
 
+// TODO: Should provide some way to wholesale copy all the .xml files in streamingAssetsPath to persistentDataPath on a load error..
     void LoadMisc()
     {
-
         var serializer = new System.Xml.Serialization.XmlSerializer(typeof(MiscSettings));
+        var path = Application.persistentDataPath + "/SavedPresets/MiscSettings.xml";
+        try {
+            LoadMisc(Application.persistentDataPath + "/SavedPresets/MiscSettings.xml");
+        } catch {
+            try {
+                LoadMisc(Application.streamingAssetsPath + "/SavedPresets/MiscSettings.xml");
+            } catch {
+                Debug.Log("**** Unable to load MiscSettings.xml from " + Application.persistentDataPath + " or " + Application.streamingAssetsPath);
+            }
+        }
+    }
 
-        using (var filestream = new FileStream(Application.streamingAssetsPath + "/SavedPresets/MiscSettings.xml", FileMode.Open))
-        {
+    void LoadMisc(string path) {
+        using (var filestream = new FileStream(path, FileMode.Open)) {
+            var serializer = new System.Xml.Serialization.XmlSerializer(typeof(MiscSettings));
             var reader = new System.Xml.XmlTextReader(filestream);
             var savedSettings = serializer.Deserialize(reader) as MiscSettings;
 

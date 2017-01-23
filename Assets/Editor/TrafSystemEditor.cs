@@ -622,7 +622,7 @@ public class TrafSystemEditor : Editor {
             }
         }
         workingTex.Apply();
-        System.IO.File.WriteAllBytes(Application.streamingAssetsPath + "/infractionsSF.png", workingTex.EncodeToPNG());
+        System.IO.File.WriteAllBytes(Application.persistentDataPath + "/infractionsSF.png", workingTex.EncodeToPNG());
         Destroy(workingTex);
 
     }
@@ -656,7 +656,7 @@ public class TrafSystemEditor : Editor {
             }
         }
         workingTex.Apply();
-        System.IO.File.WriteAllBytes(Application.streamingAssetsPath + "/infractionsBridgeSF.png", workingTex.EncodeToPNG());
+        System.IO.File.WriteAllBytes(Application.persistentDataPath + "/infractionsBridgeSF.png", workingTex.EncodeToPNG());
         Destroy(workingTex);
 
     }

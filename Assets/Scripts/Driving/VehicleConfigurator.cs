@@ -115,7 +115,7 @@ public class VehicleConfigurator : MonoBehaviour {
 
         var serializer = new XmlSerializer(typeof(VehicleSettings));
 
-        using (var filestream = new FileStream(Application.streamingAssetsPath + "/SavedPresets/" + car +".xml", FileMode.Create))
+        using (var filestream = new FileStream(Application.persistentDataPath + "/SavedPresets/" + car +".xml", FileMode.Create))
         {
             var writer = new System.Xml.XmlTextWriter(filestream, System.Text.Encoding.Unicode);
             serializer.Serialize(writer, savedSettings);
@@ -125,20 +125,23 @@ public class VehicleConfigurator : MonoBehaviour {
     public void LoadSettings()
     {
         var car = vehicle.GetComponent<VehicleInfo>().vehicleShortName;
-
-        var serializer = new XmlSerializer(typeof(VehicleSettings));
-        try
-        {
-            using (var filestream = new FileStream(Application.streamingAssetsPath + "/SavedPresets/" + car + ".xml", FileMode.Open))
-            {
-                var reader = new System.Xml.XmlTextReader(filestream);
-                var savedSettings = serializer.Deserialize(reader) as VehicleSettings;
-                savedSettings.Apply(this);
+        try {
+            LoadSettings(Application.persistentDataPath + "/SavedPresets/" + car + ".xml");
+        } catch {
+            try {
+                LoadSettings(Application.streamingAssetsPath + "/SavedPresets/" + car + ".xml");
+            } catch {
+                Debug.LogWarning("**** Unable to load car settings from " + Application.persistentDataPath + " or " + Application.streamingAssetsPath + " /SavedPresets/" + car + ".xml");
             }
         }
-        catch
-        {
-            Debug.LogWarning("Error loading vehicle settings from file: " + Application.streamingAssetsPath + "/SavedPresets/" + car + ".xml");
+    }
+
+    public void LoadSettings(string path) {
+        var serializer = new XmlSerializer(typeof(VehicleSettings));
+        using (var filestream = new FileStream(path, FileMode.Open)) {
+            var reader = new System.Xml.XmlTextReader(filestream);
+            var savedSettings = serializer.Deserialize(reader) as VehicleSettings;
+            savedSettings.Apply(this);
         }
     }
 

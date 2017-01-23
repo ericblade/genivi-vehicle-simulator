@@ -230,7 +230,7 @@ public partial class DriveAdminUI : MonoBehaviour {
 
         var serializer = new XmlSerializer(typeof(MiscSettings));
 
-        using (var filestream = new FileStream(Application.streamingAssetsPath + "/SavedPresets/MiscSettings.xml", FileMode.Create))
+        using (var filestream = new FileStream(Application.persistentDataPath + "/SavedPresets/MiscSettings.xml", FileMode.Create))
         {
              var writer = new System.Xml.XmlTextWriter(filestream, System.Text.Encoding.Unicode);
             serializer.Serialize(writer, savedSettings);
@@ -248,7 +248,7 @@ public partial class DriveAdminUI : MonoBehaviour {
 
         var serializer = new XmlSerializer(typeof(VehicleSettings));
 
-        using (var filestream = new FileStream(Application.streamingAssetsPath + "/SavedPresets/" + car + ( wet ? "_WET.xml" : ".xml"), FileMode.Create))
+        using (var filestream = new FileStream(Application.persistentDataPath + "/SavedPresets/" + car + ( wet ? "_WET.xml" : ".xml"), FileMode.Create))
         {
             var writer = new System.Xml.XmlTextWriter(filestream, System.Text.Encoding.Unicode);
             serializer.Serialize(writer, savedSettings);
@@ -257,36 +257,54 @@ public partial class DriveAdminUI : MonoBehaviour {
 
     public void LoadCar(bool wet)
     {
-        var settings = GetComponent<DriveAdminUISettings>();
-        var configurator = settings.configurator;
-
         var car = AppController.Instance.currentSessionSettings.selectedCarShortname;
-
-        var serializer = new XmlSerializer(typeof(VehicleSettings));
-
-        using (var filestream = new FileStream(Application.streamingAssetsPath + "/SavedPresets/" + car + (wet ? "_WET.xml" : ".xml"), FileMode.Open))
-        {
-            var reader = new System.Xml.XmlTextReader(filestream);
-            var savedSettings = serializer.Deserialize(reader) as VehicleSettings;
-            savedSettings.Apply(configurator);
+        try {
+            LoadCar(wet, Application.persistentDataPath + "/SavedPresets/" + car + (wet ? "_WET.xml" : ".xml"));
+        } catch {
+            try {
+                LoadCar(wet, Application.streamingAssetsPath + "/SavedPresets/" + car + (wet ? "_WET.xml" : ".xml"));
+            } catch {
+                Debug.LogWarning("**** Unable to load car data from " + Application.persistentDataPath + " or " + Application.streamingAssetsPath + " /SavedPresets/" + car + (wet ? "_WET.xml" : ".xml"));
+            }
         }
 
         //refresh vehicle panel info
         adminCategories[4].UpdateValues();
     }
 
+    public void LoadCar(bool wet, string path) {
+        var settings = GetComponent<DriveAdminUISettings>();
+        var configurator = settings.configurator;
+        var serializer = new XmlSerializer(typeof(VehicleSettings));
+        using (var filestream = new FileStream(path, FileMode.Open)) {
+            var reader = new System.Xml.XmlTextReader(filestream);
+            var savedSettings = serializer.Deserialize(reader) as VehicleSettings;
+            savedSettings.Apply(configurator);
+        }
+    }
+
     void LoadMisc()
     {
+        try {
+            LoadMisc(Application.persistentDataPath + "/SavedPresets/MiscSettings.xml");
+        } catch {
+            LoadMisc(Application.streamingAssetsPath + "/SavedPresets/MiscSettings.xml");
+        }
+
+        //refresh all misc + audio panel info
+        adminCategories[1].UpdateValues();
+        adminCategories[3].UpdateValues();
+    }
+
+    void LoadMisc(string path) {
         var settings = GetComponent<DriveAdminUISettings>();
         var driverCam = settings.driverCam;
-
         var serializer = new XmlSerializer(typeof(MiscSettings));
 
-        using (var filestream = new FileStream(Application.streamingAssetsPath + "/SavedPresets/MiscSettings.xml", FileMode.Open))
-        {
+        using (var filestream = new FileStream(path, FileMode.Open)) {
             var reader = new System.Xml.XmlTextReader(filestream);
             var savedSettings = serializer.Deserialize(reader) as MiscSettings;
-            
+
 //            timeOfDay.Components.Time.enabled = savedSettings.progressTime;
             AdminSettings.Instance.sunshafts = savedSettings.sunShafts;
             AdminSettings.Instance.fog = savedSettings.fog;
@@ -296,14 +314,8 @@ public partial class DriveAdminUI : MonoBehaviour {
             settings.SetFarClip(savedSettings.cameraClip);
             AudioController.Instance.MusicVolume = savedSettings.musicVol;
             AudioController.Instance.FoleyVolume = savedSettings.foleyVol;
-            AudioController.Instance.VehicleVolume = savedSettings.foleyVol;
-            
+            AudioController.Instance.VehicleVolume = savedSettings.foleyVol;            
         }
-
-        //refresh all misc + audio panel info
-        adminCategories[1].UpdateValues();
-        adminCategories[3].UpdateValues();
-
     }
 
     void GenerateUI()
